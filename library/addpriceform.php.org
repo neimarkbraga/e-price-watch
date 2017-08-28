@@ -1,0 +1,37 @@
+<?php
+	session_start();
+	include('useronly.php');
+  	include('connection.php');
+  	include('functionlibrary.php');
+
+  	if(isset($_POST['PRODUCT']) and isset($_POST['NAME']) and isset($_POST['ADDRESS']) and isset($_POST['LATITUDE']) and isset($_POST['LONGITUDE']) and isset($_POST['PRICE']))
+  	{
+  		if($_POST['ADDRESS'] == "Getting location...")
+  		{
+  			echo 'errorloc';
+  		}
+  		else
+  		{
+	  		$sql = 'SELECT * FROM encoded_products WHERE PRODUCT = ' . mysql_escape_string($_POST['PRODUCT']) . ' AND STORENAME = "' . mysql_escape_string($_POST['NAME']) . '" AND ADDRESS = "' . mysql_escape_string($_POST['ADDRESS']) . '" AND PRICE = ' . mysql_escape_string($_POST['PRICE']);
+	  		$result = mysql_query($sql, $con);
+	  		$total = mysql_num_rows($result);
+
+	  		if($total > 0)
+	  		{
+		  		echo 'exists';
+			}
+			else
+			{
+				$sql = 'INSERT INTO encoded_products(PRODUCT, STORENAME, ADDRESS, LAT, LNG, POSTBY, PRICE) VALUES(' . mysql_escape_string($_POST['PRODUCT']) . ', "' . mysql_escape_string($_POST['NAME']) . '", "' . mysql_escape_string($_POST['ADDRESS']) . '", ' . mysql_escape_string($_POST['LATITUDE']) . ', ' . mysql_escape_string($_POST['LONGITUDE']) . ', ' . mysql_escape_string($_SESSION['USER']) . ', ' . mysql_escape_string($_POST['PRICE']) . ')';
+		  		if(mysql_query($sql, $con))
+				{
+					echo 'success';
+				}
+				else
+				{
+					echo 'error';
+				}
+			}
+		}
+  	}
+?>

@@ -1,0 +1,20 @@
+<?php
+	session_start();
+	include('adminonly.php');
+	include('connection.php');
+	include('functionlibrary.php');
+
+	if(isset($_POST['ABOUTUS']))
+	{
+		$aboutus = $_POST['ABOUTUS'];
+		$sql = 'UPDATE about_us SET DESCRIPTION = "' . mysql_escape_string($aboutus) . '" WHERE ID = 1';
+		if(mysql_query($sql, $con))
+		{
+			echo 'success';
+		}
+		else
+		{
+			echo 'error';
+		}
+	}
+?>

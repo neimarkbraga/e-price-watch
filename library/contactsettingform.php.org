@@ -1,0 +1,26 @@
+<?php
+	session_start();
+	include('adminonly.php');
+	include('connection.php');
+	include('functionlibrary.php');
+
+	if(isset($_POST['EMAIL']) && isset($_POST['ADDRESS']) && isset($_POST['CONTACT']) && isset($_POST['FACEBOOK']) && isset($_POST['INSTAGRAM']) && isset($_POST['TWITTER']))
+	{
+		$email = $_POST['EMAIL'];
+		$address = $_POST['ADDRESS'];
+		$contact = $_POST['CONTACT'];
+		$facebook = $_POST['FACEBOOK'];
+		$instagram = $_POST['INSTAGRAM'];
+		$twitter = $_POST['TWITTER'];
+
+		$sql = 'UPDATE contact_us SET EMAIL = "' . mysql_escape_string($email) . '", ADDRESS = "' . mysql_escape_string($address) . '", CONTACT = "' . mysql_escape_string($contact) . '", FACEBOOK = "' . mysql_escape_string($facebook) . '", INSTAGRAM = "' . mysql_escape_string($instagram) . '", TWITTER = "' . mysql_escape_string($twitter) . '" WHERE ID = 1';
+		if(mysql_query($sql, $con))
+		{
+			echo 'success';
+		}
+		else
+		{
+			echo 'error';
+		}
+	}
+?>

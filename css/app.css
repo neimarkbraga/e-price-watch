@@ -1,0 +1,70 @@
+/*Home Page CSS */
+
+.home_panel{
+    width: 100%;
+    height: 100vh;
+}
+.home_panel2{
+    width: 100%;
+    min-height: calc(100vh - 50px);
+    -webkit-min-height: calc(100vh - 50px);
+    -moz-min-height: calc(100vh - 50px);
+    -ms-min-height: calc(100vh - 50px);
+    -o-min-height: calc(100vh - 50px);
+}
+#carousel-example-generic{
+    height: 100%;
+    padding-top: 50px;
+}
+.home_slide_img{
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+.home_slide_img img{
+    opacity: 0;
+}
+#home_carousel-inner{
+    width: 100%;
+    height: 100%;
+}
+
+.my_thumb_container a{
+    text-decoration: none;
+}
+
+.my_thumb_container .my_thumb_img{
+    width: 100%;
+    position: relative;
+    padding-top: 100%;
+    background-position: 50% 50%;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.my_thumb_container p, h3{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.my_thumb_container .thumbnail:hover .my_thumb_img{
+    background-size: 130% auto;
+   /* -webkit-transition: all 1s ease-in-out;
+    -moz-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;*/
+}
+.table_headers th, td{
+     text-align:  left;
+}
+
+.category100thumbnail{
+    width: 100px;
+    height: 100px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}

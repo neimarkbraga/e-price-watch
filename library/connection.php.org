@@ -1,0 +1,21 @@
+<?php
+
+//______________________________
+	$server = "localhost";
+//______________________________
+
+//____________________________________
+//		Log in your account
+//_________________________________________________
+$username =	/* USERNAME: */	"root";
+$password =	/* PASSWORD: */	"";
+$database =	/* DATABASE: */	"srpdata";
+//_________________________________________________
+
+
+$con = mysql_connect($server, $username, $password) or mysql_error();
+mysql_select_db($database, $con);
+
+
+//$con = mysql_connect($server, $username, $password) or mysql_error();
+?>

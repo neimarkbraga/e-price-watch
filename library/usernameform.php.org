@@ -1,0 +1,22 @@
+<?php
+	session_start();
+	include('useronly.php');
+	include('connection.php');
+	include('functionlibrary.php');
+
+	$logged_in_id = $_SESSION['USER'];
+	if(isset($_POST['NAME']))
+	{
+		$name = $_POST['NAME'];
+		$sql = 'UPDATE user_account SET NAME = "' . mysql_escape_string($name) . '" WHERE ID = ' . mysql_escape_string($logged_in_id);
+		if(mysql_query($sql, $con))
+		{
+			$_SESSION['NAME'] = $name;
+			echo 'success';
+		}
+		else
+		{
+			echo 'error';
+		}
+	}
+?>

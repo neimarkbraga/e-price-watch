@@ -1,0 +1,60 @@
+<?php
+	session_start();
+	include('useronly.php');
+  	include('connection.php');
+  	include('functionlibrary.php');
+
+  	if(isset($_POST['ID']) and isset($_POST['NAME']) and isset($_POST['ADDRESS']) and isset($_POST['LATITUDE']) and isset($_POST['LONGITUDE']) and isset($_POST['PRICE']))
+  	{
+  		$the_id = $_POST['ID'];
+  		$newstorename = $_POST['NAME'];
+  		$newaddress = $_POST['ADDRESS'];
+  		$newlat = $_POST['LATITUDE'];
+  		$newlng = $_POST['LONGITUDE'];
+  		$newprice = $_POST['PRICE'];
+  		
+  		$oldprice;
+  		$product;
+  		$sql = 'SELECT PRODUCT, PRICE, DATECREATED FROM encoded_products WHERE ID = ' . mysql_escape_string($_POST['ID']);
+  		$result = mysql_query($sql, $con);
+  		if($row = mysql_fetch_array($result))
+  		{
+  			$olddate = $row['DATECREATED'];
+  			$oldprice = $row['PRICE'];
+  			$product =  $row['PRODUCT'];
+  		} 
+
+  		if($_POST['ADDRESS'] == "Getting location..." or $_POST['ADDRESS'] == "")
+  		{
+  			echo 'errorloc';
+  		}
+  		else
+  		{
+	  		$sql = 'SELECT * FROM encoded_products WHERE PRODUCT = ' . mysql_escape_string($product) . ' AND STORENAME = "' . mysql_escape_string($_POST['NAME']) . '" AND ADDRESS = "' . mysql_escape_string($_POST['ADDRESS']) . '" AND PRICE = ' . mysql_escape_string($_POST['PRICE']);
+	  		$result = mysql_query($sql, $con);
+	  		$total = mysql_num_rows($result);
+
+	  		if($total > 0)
+	  		{
+		  		echo 'exists';
+			}
+			else
+			{
+				$sql = 'UPDATE encoded_products SET STORENAME = "' . mysql_escape_string($_POST['NAME']) . '", DATECREATED = CURRENT_TIMESTAMP, ADDRESS = "' . mysql_escape_string($_POST['ADDRESS']) . '", LAT = ' . mysql_escape_string($_POST['LATITUDE']) . ', LNG = ' . mysql_escape_string($_POST['LONGITUDE']) . ', PRICE = ' . mysql_escape_string($_POST['PRICE']) . ' WHERE ID = ' . mysql_escape_string($_POST['ID']);
+		  		if(mysql_query($sql, $con))
+				{
+					if($oldprice != $newprice)
+					{
+						$sql = 'INSERT INTO price_history(ENCODED_ID, PRICE, DATECREATED) VALUES(' . $the_id . ', ' . $oldprice . ', \'' . $olddate . '\')';
+						mysql_query($sql, $con);
+					}
+					echo 'success';
+				}
+				else
+				{
+					echo 'error';
+				}
+			}
+		}
+  	}
+?>

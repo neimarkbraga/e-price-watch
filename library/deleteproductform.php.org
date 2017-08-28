@@ -1,0 +1,39 @@
+<?php
+	session_start();
+	include('adminonly.php');
+	include('connection.php');
+	include('functionlibrary.php');
+
+	if(isset($_POST['DELETEID']))
+	{
+		$ID = $_POST['DELETEID'];
+		$sql = 'SELECT * FROM encoded_products WHERE PRODUCT = ' . mysql_escape_string($ID);
+		$result = mysql_query($sql, $con);
+		$total = mysql_num_rows($result);
+
+		if($total < 1)
+		{
+			$sql = 'DELETE FROM product_table WHERE ID = ' . mysql_escape_string($ID);
+			if(mysql_query($sql, $con))
+			{
+				echo 'success';
+				try
+                {
+                    deleteDir('../img/site images/productimages/' . $ID);
+                }
+			    catch(Exception $e)
+			    {
+			    	//
+			    }
+			}
+			else
+			{
+				echo 'error';
+			}
+		}
+		else
+		{
+			echo 'exists';
+		}
+	}
+?>

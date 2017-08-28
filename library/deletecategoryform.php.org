@@ -1,0 +1,79 @@
+<?php
+session_start();
+include('adminonly.php');
+include('connection.php');
+include('functionlibrary.php');
+
+if(isset($_SESSION['USER']))
+{
+	if($_SESSION['USER'] < 0)
+	{
+		if(isset($_POST['delete']))
+		{
+		    if(!empty($_POST['delete']))
+		    {
+		        $valid = true;
+		        $id_to_delete = -99;
+		        try
+		        {
+		            $id_to_delete = (int)$_POST['delete'];
+		        }
+		        catch(Exception $e)
+		        {
+		            echo 'unknown';
+		            $valid = false;
+		        }
+
+		        if($valid)
+		        {
+		            if($id_to_delete > 0)
+		            {
+		                $sql = 'SELECT * FROM product_category WHERE ID=' . mysql_escape_string($id_to_delete) . ' AND CONSTANT = 0';
+		                $result = mysql_query($sql, $con);
+		                $total_posts = mysql_num_rows($result);
+		                if($total_posts > 0)
+		                {
+		                    $sql = 'SELECT * FROM product_table WHERE CATEGORY=' . mysql_escape_string($id_to_delete);
+		                    $result = mysql_query($sql, $con);
+		                    $total_posts = mysql_num_rows($result);
+		                    if($total_posts > 0)
+		                    {
+		                        echo 'used'; //"<h6>Category cannot be deleted because it is being used by a product you encoded. Delete the product first to delete this category.<h6><br />";
+		                    }
+		                    else
+		                    {
+		                        $sql = 'DELETE FROM product_category WHERE ID=' . mysql_escape_string($id_to_delete) . ' AND CONSTANT = 0';
+		                        if(mysql_query($sql, $con))
+		                        {
+		                            echo 'success'; //"<h6>You have successfully deleted the category.<h6><a href='managecategory.php'>Reload</a> page to ensure changes.<br />";
+		                            try
+		                            {
+		                            	deleteDir('../img/site images/categoryimages/' . $id_to_delete);
+		                        	}
+							        catch(Exception $e)
+							        {
+							        	//
+							        }
+		                        }
+		                        else
+		                        {
+		                            echo 'problem';
+		                        }
+		                    }
+		                }
+		                else
+		                {
+		                    echo 'notfound';
+		                }
+		            }
+		            else
+		            {
+		                echo 'unknown';
+		            }
+		        }
+		    }
+		}
+	}
+}
+
+?>

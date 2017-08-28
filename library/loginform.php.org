@@ -1,0 +1,43 @@
+<?php
+session_start();
+include('connection.php');
+
+if(isset($_POST['USERNAME']) and isset($_POST['PASSWORD']))
+{
+    $a_username = $_POST['USERNAME'];
+    $a_password = $_POST['PASSWORD'];
+    if(!empty($a_username) and !empty($a_password))
+    {
+        $sql = 'SELECT * FROM admin_account WHERE USERNAME = "' . mysql_escape_string($a_username) . '" AND PASSWORD = "' . mysql_escape_string($a_password) . '"';
+        $result = mysql_query($sql, $con);
+        $total_posts = mysql_num_rows($result);
+        if($total_posts > 0)
+        {
+            echo 'admin';
+            $_SESSION["USER"] = -99;
+        }
+        else
+        {
+            $sql = 'SELECT * FROM user_account WHERE USERNAME = "' . mysql_escape_string($a_username) . '" AND PASSWORD = "' . mysql_escape_string($a_password) . '"';
+            $result = mysql_query($sql, $con);
+            $total_posts = mysql_num_rows($result);
+            if($total_posts > 0)
+            {
+            	$row = mysql_fetch_array($result);
+                echo 'user';
+                $_SESSION["USER"] = $row['ID'];
+                $_SESSION["NAME"] = $row['NAME'];
+            }
+            else
+            {
+                echo 'false';
+            }
+        }
+    }
+    else
+    {
+        echo 'false';
+    }
+}
+
+?>

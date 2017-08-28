@@ -1,0 +1,31 @@
+<?php
+	session_start();
+	include('useronly.php');
+	include('connection.php');
+	include('functionlibrary.php');
+	$logged_in_id = $_SESSION['USER'];
+
+	if(isset($_POST['EMAIL']))
+	{
+		$email = $_POST['EMAIL'];
+		$sql = 'SELECT * FROM user_account WHERE EMAIL = "' . mysql_escape_string($email) . '"';
+		$result = mysql_query($sql, $con);
+		$total = mysql_num_rows($result);
+		if($total > 0)
+		{
+			echo 'exists';
+		}
+		else
+		{
+			$sql = 'UPDATE user_account SET EMAIL = "' . mysql_escape_string($email) . '" WHERE ID = ' . mysql_escape_string($logged_in_id);
+			if(mysql_query($sql, $con))
+			{
+				echo 'success';
+			}
+			else
+			{
+				echo 'error';
+			}
+		}
+	}
+?>

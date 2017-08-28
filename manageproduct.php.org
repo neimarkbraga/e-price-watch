@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<?php
+  session_start();
+  include('library/adminonly.php');
+  include('library/connection.php');
+  include('library/functionlibrary.php');
+  
+  $categoryset = false;
+  $searchset = false;
+  $searchkeyword = '';
+  $categoryid = -99;
+
+  if(isset($_GET['category']))
+  {
+    $sql = 'SELECT * FROM product_category WHERE ID = "' . mysql_escape_string($_GET['category']) . '"';
+    $result = mysql_query($sql, $con);
+    $total_category = mysql_num_rows($result);
+    if($total_category > 0)
+    {
+      $categoryid = $_GET['category'];
+      $categoryset = true;
+    }
+  }
+  if(isset($_GET['search']))
+  {
+    $searchkeyword = $_GET['search'];
+    $searchset = true;
+  }
+
+?>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>E-Price Watch</title>
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+<body role="document">
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 id="panel_title"></h4>
+      </div>
+      <div class="modal-body">
+        <div id="my_message_box">
+
+        </div>
+        <ul class="nav nav-tabs" style="display: none;">
+          <li><a href="#addpanel" data-toggle="tab">Add</a></li>
+          <li><a href="#editpanel" data-toggle="tab">Edit</a></li>
+          <li><a href="#deletepanel" data-toggle="tab">Delete</a></li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <!-- Adding section-->
+          <div role="tabpanel" class="tab-pane fade in active" id="addpanel">
+            <iframe id="add_iframe" name="add_iframe" src="" style="display:none;" ></iframe><!--style="display:none;"-->
+            <form enctype="multipart/form-data" method="post" id="addform" action="library/addproductform.php" onsubmit="return add_form_submit();" target="add_iframe"><!--need to edit-->
+
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon23">Category: </span>
+                <select class="form-control" id="add_category_input" name="CATEGORY">
+                  <?php
+                      $sql = 'SELECT * FROM product_category';
+                      $result = mysql_query($sql, $con);
+                      while ($row = mysql_fetch_array($result)) {
+                  ?>
+                  <option value="<?php echo $row['ID'] ?>"><?php echo $row['NAME'] ?></option>
+                  <?php } ?>
+                </select>
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-header"></span> </span>
+                <input type="text" class="form-control" id="add_name_input" name="NAME" placeholder="Product Name" aria-describedby="basic-addon1" required />
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon2"><span class="glyphicon glyphicon-info-sign"></span> </span>
+                <textarea class="form-control" rows="5" id="add_description_input" name="DESCRIPTION" placeholder="Product Description" aria-describedby="basic-addon2" required></textarea>
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon45"><span class="glyphicon glyphicon-tag"></span> </span>
+                <input type="number" class="form-control" min="0" id="add_srp_input" name="SRP" placeholder="Suggested Retail Price (SRP)" step="any" aria-describedby="basic-addon2" required />
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon3dddd"><span class="glyphicon glyphicon-picture"></span> </span>
+                <input type="file" class="form-control" name="file" id="addimage" aria-describedby="basic-addon1" accept=".jpg, .JPG, .png, .PNG" />
+              </div>
+
+              <br />
+              <input type="submit" class="btn btn-info pull-right" id="addbtn" data-loading-text="Adding product..." value="Add Product" />
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+
+          <!--Editing section-->
+          <div role="tabpanel" class="tab-pane fade" id="editpanel">
+            <iframe id="edit_iframe" name="edit_iframe" src="" style="display: none;"></iframe>
+            <form enctype="multipart/form-data" target="edit_iframe" action="library/editproductform.php" onsubmit="return edit_form_submit();" method="post">
+              <input type="text" name="ID" id="edit_id_input" style="display: none;" required />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon22343">Category: </span>
+                <select class="form-control" name="CATEGORY" id="edit_category_input">
+                  <?php
+                      $sql = 'SELECT * FROM product_category';
+                      $result = mysql_query($sql, $con);
+                      while ($row = mysql_fetch_array($result)) {
+                  ?>
+                  <option value="<?php echo $row['ID'] ?>"><?php echo $row['NAME'] ?></option>
+                  <?php } ?>
+                </select>
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-ad324"><span class="glyphicon glyphicon-header"></span> </span>
+                <input type="text" class="form-control" id="edit_name_input" name="NAME" placeholder="Product Name" aria-describedby="basic-addon1" required />
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-23n2"><span class="glyphicon glyphicon-info-sign"></span> </span>
+                <textarea type="text" class="form-control" id="edit_description_input" rows="5" name="DESCRIPTION" placeholder="Product Description" aria-describedby="basic-addon2" required></textarea>
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic3425"><span class="glyphicon glyphicon-tag"></span> </span>
+                <input type="number" class="form-control" min="0" id="edit_srp_input" name="SRP" placeholder="Suggested Retail Price (SRP)" step="any" aria-describedby="basic-addon2" required />
+              </div>
+
+              <br />
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <p><span class="glyphicon glyphicon-picture"></span> Photo<p>
+                </div>
+                <div class="panel-body">
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" id="changeimgupdate" value="0" name="IMAGEACTION"> Change
+                    </label>
+                    <input type="file" class="form-control" accept=".jpg, .JPG, .png, .PNG" name="FILE" id="editfile" onchange="document.getElementById('changeimgupdate').checked=true" name="IMAGE" aria-describedby="basic-addon1" />
+                  </div>
+
+                  <br />
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" name="IMAGEACTION" id="editradioremain" value="1" checked="checked"> Remain
+                    </label>
+                    <img style="height: 200px; width: auto;" id="editimg" src="img/site%20images/box.jpg" class="form-control" />
+                  </div>
+
+                  <br />
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" value="2" id="editradiodelete" name="IMAGEACTION"> Delete
+                    </label>
+                    <div class="form-control" style="width: 0px;"></div>
+                  </div>
+                </div>  
+              </div>
+
+              <br />
+              <input type="submit" class="btn btn-info pull-right" id="editbtn" data-loading-text="Updating product..." value="Update Product" />
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+
+          <!--Deletign section-->
+          <div role="tabpanel" class="tab-pane fade" id="deletepanel">
+            <iframe id="delete_iframe" name="delete_iframe" src="" style="display:none;" ></iframe><!--style="display:none;"-->
+            <form method="post" action="library/deleteproductform.php" target="delete_iframe" onsubmit="return delete_form_submit();">
+              <input type="number" name="DELETEID" id="delete_id_input" style="display: none;" />
+              <p>Are you sure, you want to delete <b id="delname"></b>?</p>
+
+              <div class="pull-right">
+                <button type="button" data-dismiss="modal" aria-label="Close" class="btn btn-default">Cancel</button>
+                <input type="submit" class="btn btn-danger" data-loading-text="Deleting product..." id="deletebtn" value="Delete" />
+              </div>
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed navbar -->
+<?php include('library/navbar.php'); ?>
+
+<!--contents start here-->
+<div class="container">
+  <div style="width:100%; height: 80px"></div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3>Manage Product</h3>
+      <small>
+        <ol class="breadcrumb">
+          <li><a href="adminpanel.php">Admin Dashboard</a></li>
+          <li><a href="managecategory.php">Manage Category</a></li>
+          <li class="active">Manage Product</li>
+          <li><a href="sitesettings.php">Site Settings</a></li>
+          <li><a href="accountsettings.php">Account Settings</a></li>
+        </ol>
+      </small>
+    </div>
+    <div class="panel-body">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <a href="#" onclick="initaddpanel();" class="btn btn-primary pull-right" data-toggle="modal" data-target="#myModal">Add new Product</a>
+          <div style="clear: both"></div>
+          <hr />
+          <form method="get">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <select onchange="changecategory(this.options[this.selectedIndex].text);" id="searchcategory" name="category" class="btn btn-default dropdown-toggle" style="height: 2.4em;">
+                  <option value="-99">All</option>
+                  <?php
+                      $sql = 'SELECT * FROM product_category';
+                      $result = mysql_query($sql, $con);
+                      while ($row = mysql_fetch_array($result)) {
+                  ?>
+                  <option value="<?php echo $row['ID'] ?>" id="category<?php echo $row['ID'] ?>"><?php echo $row['NAME'] ?></option>
+                  <?php } ?>
+                </select>
+                <?php echo "<script> document.getElementById('searchcategory').value = '" . $categoryid . "' </script>" ?>
+              </span>
+              <input type="text" name="search" value="<?php echo $searchkeyword; ?>" id="searchinput" class="form-control" placeholder="Search">
+              <span class="input-group-btn">
+                <input class="btn btn-default" type="submit" value="Search" />
+              </span>
+            </div><!-- /input-group -->
+          </form>
+          <?php
+            $argument = '';
+            if($categoryset)
+            {
+              $argument .= ' AND product_category.ID = ' . mysql_escape_string($categoryid);
+            }
+            if($searchset)
+            {
+              $argument .= ' AND product_table.NAME LIKE "%' . mysql_escape_string($searchkeyword) . '%"';
+            }
+            $sql = 'SELECT product_table.ID, product_table.NAME, product_table.DESCRIPTION, product_table.SRP, product_category.ID AS CATEGORYID, product_category.NAME AS CATEGORY FROM product_table, product_category WHERE product_category.ID = product_table.CATEGORY' . $argument . ' ORDER BY product_table.DATECREATED DESC';
+            $result = mysql_query($sql, $con);
+            $total_result = mysql_num_rows($result);
+            if($total_result < 1)
+            {
+           ?>
+           <br />
+            <div class="alert alert-info" role="alert">There are no results. <a href="manageproduct.php">Click here to go to all categories</a></div>
+           <?php } ?>
+        </div>
+        <table class="table">
+          <thead>
+            <tr class="table_headers">
+              <th>Photo</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>SRP</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="resultcontainer">
+            <?php
+            while ($row = mysql_fetch_array($result)) {    
+            ?>
+            <tr id="item<?php echo $row['ID']; ?>" >
+              <td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url('<?php echo getproductpic($row['ID']); ?>')"></div></td>
+              <td style="vertical-align:middle"><?php echo $row['CATEGORY']; ?></td>
+              <td style="vertical-align:middle"><b><?php echo $row['NAME']; ?></b></td>
+              <td style="vertical-align:middle"><?php echo $row['DESCRIPTION']; ?></td>
+              <td style="vertical-align:middle"><?php echo $row['SRP']; ?></td>
+              <td style="text-align: right; vertical-align:middle;">
+                <a href="#" onclick="initeditpanel(<?php echo $row['ID']; ?>, <?php echo $row['CATEGORYID']; ?>, '<?php echo $row['NAME']; ?>', '<?php echo $row['DESCRIPTION']; ?>', <?php echo $row['SRP']; ?>, '<?php echo getproductpic($row['ID']); ?>');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Update</a>
+                <a href="#" onclick="initdeletepanel(<?php echo $row['ID']; ?>, '<?php echo $row['NAME']; ?>');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a>
+              </td>
+            </tr>
+            <?php } ?>
+
+
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!--contents end here-->
+<?php include('library/footer.php'); ?>
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="js/1.11.3_jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="js/bootstrap.min.js"></script>
+<script> 
+  var adddetails = {
+    category: document.getElementById('add_category_input'),
+    name: document.getElementById('add_name_input'),
+    description: document.getElementById('add_description_input'),
+    srp: document.getElementById('add_srp_input'),
+    image: document.getElementById('addimage')
+  };
+  var editdetails = {
+    id: document.getElementById('edit_id_input'),
+    category: document.getElementById('edit_category_input'),
+    name: document.getElementById('edit_name_input'),
+    description: document.getElementById('edit_description_input'),
+    srp: document.getElementById('edit_srp_input'),
+    currimage: document.getElementById('editimg'),
+    currimage2: '',
+    changeradio: document.getElementById('changeimgupdate'),
+    remainradio: document.getElementById('editradioremain'),
+    deleteradio: document.getElementById('editradiodelete'),
+    image: document.getElementById('editfile')
+  };
+  var deletedetails = {
+    id: document.getElementById('delete_id_input')
+  };
+  var add_request = false;
+  var edit_request = false;
+  var delete_request = false;
+  var addform = document.getElementById("add_iframe");
+  var deleteform = document.getElementById("delete_iframe");
+  var editform = document.getElementById("edit_iframe");
+  var messagebox = document.getElementById("my_message_box");
+  var add_btn = "#addbtn";
+  var edit_btn = "#editbtn";
+  var delete_btn = "#deletebtn";
+
+
+  $('#myModal').on('show.bs.modal', function (e) {
+    messagebox.innerHTML = "";
+  });
+
+  function getcategoryname(c_id)
+  {
+    return document.getElementById('category' + c_id).innerHTML;
+  }
+
+  function add_item(a_id)
+  {
+    var item_id = a_id;
+    var item_image = adddetails.image.value;
+    item_image = item_image.split('\\')[item_image.split('\\').length - 1];
+    if(item_image == '')
+    {
+      item_image = 'img/site images/productimages/default.jpg';
+    }
+    else
+    {
+      item_image = "img/site images/productimages/" + item_id + "/" + item_image; 
+    }
+    //add an item in the list
+    var currentlist = document.getElementById('resultcontainer');
+    currentlist.innerHTML = '<tr id="item' + a_id + '"><td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url(\'' + item_image + '\')"></div></td><td style="vertical-align:middle">' + getcategoryname(adddetails.category.value) + '</td> <td style="vertical-align:middle"><b>' + adddetails.name.value + '</b></td> <td style="vertical-align:middle">' + adddetails.description.value + '</td> <td style="vertical-align:middle">' + adddetails.srp.value + '</td> <td style="text-align: right; vertical-align:middle;"> <a href="#" onclick="initeditpanel(' + a_id + ', ' + adddetails.category.value + ', \'' + adddetails.name.value + '\', \'' + adddetails.description.value + '\', ' + adddetails.srp.value + ', \'' + item_image + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Update</a> <a href="#" onclick="initdeletepanel(' + a_id + ', \'' + adddetails.name.value + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a> </td></tr>' + currentlist.innerHTML;
+  }
+
+  function edit_item()
+  {
+    var item_id = editdetails.id.value;
+    var item_image = '';
+    if(editdetails.changeradio.checked)
+    {
+      //item_image = editdetails.image.src;
+      item_image = editdetails.image.value;
+      item_image = item_image.split('\\')[item_image.split('\\').length - 1];
+      if(item_image == '')
+      {
+        item_image = 'img/site images/productimages/default.jpg';
+      }
+      else
+      {
+        item_image = "img/site images/productimages/" + item_id + "/" + item_image; 
+      }
+    }
+
+    if(editdetails.remainradio.checked)
+    {
+      item_image = editdetails.currimage2;
+    }
+
+    if(editdetails.deleteradio.checked)
+    {
+      item_image = 'img/site images/productimages/default.jpg';
+    }
+    //edit an item in the list
+    document.getElementById('item' + editdetails.id.value).innerHTML = '<td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url(\'' + item_image + '\')"></div></td><td style="vertical-align:middle">' + getcategoryname(editdetails.category.value) + '</td> <td style="vertical-align:middle"><b>' + editdetails.name.value + '</b></td> <td style="vertical-align:middle">' + editdetails.description.value + '</td> <td style="vertical-align:middle">' + editdetails.srp.value + '</td> <td style="text-align: right; vertical-align:middle;"> <a href="#" onclick="initeditpanel(' + editdetails.id.value + ', ' + editdetails.category.value + ', \'' + editdetails.name.value + '\', \'' + editdetails.description.value + '\', ' + editdetails.srp.value + ', \'' + item_image + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Update</a> <a href="#" onclick="initdeletepanel(' + editdetails.id.value + ', \'' + editdetails.name.value + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a> </td>'; 
+    $('#myModal').modal('hide');
+  }
+
+  function delete_item()
+  {
+    //delete item from the list
+    $('#myModal').modal('hide');
+    $("#item" + deletedetails.id.value).remove();
+  }
+
+  function add_form_submit()
+  {
+    add_request = true;
+    $(add_btn).button('loading');
+    return true;
+  }
+
+  function edit_form_submit()
+  {
+    edit_request = true;
+    $(edit_btn).button('loading');
+    return true;
+  }
+
+  function delete_form_submit()
+  {
+    delete_request = true;
+    $(delete_btn).button('loading');
+    return true;
+  }
+  //<div class="alert alert-success" role="alert"><b>Oh Yeah!</b> You have successfully added new category</div>
+  //<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> That Category Name already exists.</div>
+  //<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>
+
+  addform.onload = function() {
+      var add_message = addform.contentDocument.body.innerHTML;
+      if(add_request)
+      {
+        if(parseInt(add_message))
+        {
+          messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> You have successfully added a new product</div>';
+          add_item(add_message);
+        }
+        else if(add_message == 'error')
+        {
+          messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with adding the product.</div>';
+        }
+        else
+        {
+          messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+        }
+
+            //messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> You have successfully added a new product</div>';
+
+            //messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+
+        //check and display errors.
+        //messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>' + add_message + '</div>';
+        //add_item(22);
+
+        add_request = false;
+        $(add_btn).button('reset');
+        addform.src = "";
+      }
+  };
+
+  editform.onload = function() {
+    var edit_message = editform.contentDocument.body.innerHTML;
+    if(edit_request)
+    {
+
+      if(edit_message == 'success')
+      {
+        messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> You have successfully updated the product</div>';
+        edit_item();
+      }
+      else if(edit_message == 'error')
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with editing the product.</div>';
+      }
+      else if(edit_message == 'nopicture')
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> Please a select a picture if you want to change picture.</div>';
+      }
+      else
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+      }
+
+      //check and display errors.
+      //messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>' + edit_message + '</div>';
+      //edit_item();
+
+      edit_request = false;
+      $(edit_btn).button('reset');
+      editform.src = "";
+    }
+  };
+
+
+  deleteform.onload = function() {
+    var delete_message = deleteform.contentDocument.body.innerHTML;
+    if(delete_request)
+    {
+      if(delete_message == 'success')
+      {
+        messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> You have successfully deleted the product.</div>';
+        delete_item();
+      }
+      else if(delete_message == 'error')
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with deleting the product.</div>';
+      }
+      else if(delete_message == 'exists')
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> This product has existing price/s. Please delete them first.</div>';
+      }
+      else
+      {
+        messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+      }
+
+      //check and display errors.
+      //messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>' + delete_message + '</div>';
+      //delete_item();
+
+      delete_request = false;
+      $(delete_btn).button('reset');
+      deleteform.src = "";
+    }
+  }; 
+
+  function changecategory(text){
+    document.getElementById('searchinput').placeholder = "Search in " + text + " Category";
+  }
+
+  function initaddpanel(){
+    document.getElementById('panel_title').innerHTML = "Add Product";
+    $('.nav-tabs a[href="#addpanel"]').tab('show');
+  }
+  function initeditpanel(e_id, e_category, e_name, e_description, e_srp, e_image){
+    editdetails.id.value = e_id;
+    editdetails.category.value = e_category;
+    editdetails.name.value = e_name;
+    editdetails.description.value = e_description;
+    editdetails.srp.value = e_srp;
+    editdetails.currimage.src = e_image;
+    editdetails.currimage2 = e_image;
+
+    document.getElementById('panel_title').innerHTML = "Edit Product";
+    $('.nav-tabs a[href="#editpanel"]').tab('show')
+  }
+  function initdeletepanel(d_id, d_name){
+    document.getElementById('delname').innerHTML = d_name;
+    deletedetails.id.value = d_id;
+    document.getElementById('panel_title').innerHTML = "Delete Product";
+    $('.nav-tabs a[href="#deletepanel"]').tab('show')
+  }
+</script>
+</body>
+</html>

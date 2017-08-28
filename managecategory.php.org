@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<?php
+session_start();
+include('library/adminonly.php');
+include('library/connection.php');
+include('library/functionlibrary.php');
+?>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>E-Price Watch</title>
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+<body role="document">
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 id="panel_title"></h4>
+      </div>
+      <div class="modal-body">
+        <div id="my_message_box">
+
+        </div>
+        <ul class="nav nav-tabs" style="display: none;">
+          <li><a href="#addpanel" data-toggle="tab">Add</a></li>
+          <li><a href="#editpanel" data-toggle="tab">Edit</a></li>
+          <li><a href="#deletepanel" data-toggle="tab">Delete</a></li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <!-- Adding section-->
+          <div role="tabpanel" class="tab-pane fade in active" id="addpanel">
+            <iframe id="add_iframe" name="add_iframe" src="" style="display:none;" ></iframe><!--style="display:none;"-->
+            <form enctype="multipart/form-data" method="post" id="addform" action="library/addcategoryform.php" onsubmit="$('#addbutton').button('loading'); request = true;" target="add_iframe">
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-header"></span> </span>
+                <input type="text" class="form-control" name="NAME" id="addname" placeholder="Category Name" aria-describedby="basic-addon1" required />
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon2"><span class="glyphicon glyphicon-info-sign"></span> </span>
+                <textarea type="text" class="form-control" rows="5" id="adddesc" name="DESCRIPTION" placeholder="Category Description" aria-describedby="basic-addon2" required></textarea>
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon3"><span class="glyphicon glyphicon-picture"></span> </span>
+                <input type="file" class="form-control" name="file" id="addimage" aria-describedby="basic-addon1" accept=".jpg, .JPG, .png, .PNG" />
+              </div>
+
+              <br />
+              <input type="submit" class="btn btn-info pull-right" id="addbutton" data-loading-text="Adding category..." value="Add Category" />
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+
+          <!--Editing section-->
+          <div role="tabpanel" class="tab-pane fade" id="editpanel" >
+            <iframe id="edit_iframe" name="edit_iframe" src="" style="display: none;"></iframe>
+            <form enctype="multipart/form-data" target="edit_iframe" onsubmit="return validateedit();" action="library/editcategoryform.php" method="post">
+              <input type="number" id="editid" name="ID" style="display: none;" />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon4"><span class="glyphicon glyphicon-header"></span> </span>
+                <input type="text" class="form-control" id="editname" name="NAME" placeholder="Category Name" aria-describedby="basic-addon1" required />
+              </div>
+
+              <br />
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon5"><span class="glyphicon glyphicon-info-sign"></span> </span>
+                <textarea class="form-control" rows="5" id="editdesc" name="DESCRIPTION" placeholder="Category Description" aria-describedby="basic-addon2" required></textarea>
+              </div>
+
+              <br />
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <p><span class="glyphicon glyphicon-picture"></span> Photo<p>
+                </div>
+                <div class="panel-body">
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" id="changeimgupdate" value="0" name="IMAGEACTION"> Change
+                    </label>
+                    <input type="file" class="form-control" accept=".jpg, .JPG, .png, .PNG" name="FILE" id="editfile" onchange="document.getElementById('changeimgupdate').checked=true" name="IMAGE" aria-describedby="basic-addon1" />
+                  </div>
+
+                  <br />
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" name="IMAGEACTION" id="editradioremain" value="1" checked="checked"> Remain
+                    </label>
+                    <img style="height: 200px; width: auto;" id="editimg" src="img/site%20images/BG1.jpg" class="form-control" />
+                  </div>
+
+                  <br />
+                  <div class="input-group">
+                    <label class="input-group-addon">
+                      <input type="radio" value="2" id="editradiodelete" name="IMAGEACTION"> Delete
+                    </label>
+                    <div class="form-control" style="width: 0px;"></div>
+                  </div>
+                </div>  
+              </div>
+
+              <br />
+              <input type="submit" class="btn btn-info pull-right" id="editbtn" data-loading-text="Updating category..." value="Update Category" />
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+
+          <!--Deletign section-->
+          <div role="tabpanel" class="tab-pane fade" id="deletepanel">
+            <iframe id="delete_iframe" name="delete_iframe" src="" style="display:none;" ></iframe><!--style="display:none;"-->
+            <form method="post" action="library/deletecategoryform.php" target="delete_iframe" onsubmit="$('#deletebtn').button('loading'); deleterequest = true;">
+              <input type="number" name="delete" id="delid_input" style="display:none;" />
+              <p>Are you sure, you want to delete <b id="delname"></b> category?</p>
+
+              <div class="pull-right">
+                <button type="button" data-dismiss="modal" aria-label="Close" class="btn btn-default">Cancel</button>
+                <input type="submit" class="btn btn-danger" data-loading-text="Deleting category..." id="deletebtn" value="Delete" />
+              </div>
+              <div style="clear:both;"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Fixed navbar -->
+<?php include('library/navbar.php'); ?>
+<!--contents start here-->
+<div class="container">
+  <div style="width:100%; height: 80px"></div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3>Manage Category</h3>
+      <small>
+        <ol class="breadcrumb">
+          <li><a href="adminpanel.php">Admin Dashboard</a></li>
+          <li class="active">Manage Category</li>
+          <li><a href="manageproduct.php">Manage Product</a></li>
+          <li><a href="sitesettings.php">Site Settings</a></li>
+          <li><a href="accountsettings.php">Account Settings</a></li>
+        </ol>
+      </small>
+    </div>
+    <div class="panel-body">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <a href="#" onclick="initaddpanel();" class="btn btn-primary pull-right" data-toggle="modal" data-target="#myModal">Add new category</a>
+          <div style="clear: both"></div>
+        </div>
+        <table class="table" class="table_tovert">
+          <thead>
+            <tr class="table_headers">
+              <th>Photo</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="thetable">
+            <?php
+                $sql = 'SELECT * FROM product_category ORDER BY ID DESC';
+                $result = mysql_query($sql, $con);
+                while ($row = mysql_fetch_array($result)) {
+            ?>
+            <tr id="item<?php echo $row['ID']; ?>">
+              <td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url('<?php echo getcategorypic($row['ID']);?>')"></div></td>
+              <td style="vertical-align:middle"><b><?php echo $row['NAME']; ?></b></td>
+              <td style="vertical-align:middle"><?php echo $row['DESCRIPTION']; ?></td>
+
+              <td style="text-align: right; vertical-align:middle">
+                <a href="#" onclick="initeditpanel('<?php echo $row['ID']; ?>', '<?php echo $row['NAME']; ?>', '<?php echo $row['DESCRIPTION']; ?>', '<?php echo getcategorypic($row['ID']);?>');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Edit</a>
+                <a href="#" onclick="initdeletepanel(<?php echo $row['ID']; ?>, '<?php echo $row['NAME']; ?>');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a>
+              </td>
+
+            </tr>
+            <?php
+            }
+            ?>
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!--contents end here-->
+
+
+<?php include('library/footer.php'); ?>
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="js/1.11.3_jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="js/bootstrap.min.js"></script>
+<script>
+      var defaultcatimage = "img/site images/categoryimages/default.jpg";
+      var edit_pic;
+      var edit_id;
+      var edit_name;
+      var edit_desc;
+      var request = false;
+      var editrequest = false;
+      var deleteid;
+      var deleterequest = false;
+      var addform = document.getElementById("add_iframe");
+      var deleteform = document.getElementById("delete_iframe");
+      var editform = document.getElementById("edit_iframe");
+      var messagebox = document.getElementById("my_message_box");
+
+          $('#myModal').on('show.bs.modal', function (e) {
+            messagebox.innerHTML = "";
+          });
+
+      function validateedit()
+      {
+        var imageremain = document.getElementById('editradioremain').checked;
+        var editname = document.getElementById('editname').value;
+        var editdesc = document.getElementById('editdesc').value;
+        if(imageremain && editname == edit_name && editdesc == edit_desc)
+        {
+          messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Hey!</b> There\'s nothing to be updated. Nothing changed.</div>';
+          return false;
+        }
+        else
+        { 
+          $('#editbtn').button('loading');
+          editrequest = true;
+          return true;
+        }
+      }
+
+      function updateitem(){
+        var editname = document.getElementById('editname').value;
+        var editdesc = document.getElementById('editdesc').value;
+        var editimg = document.getElementById('editimg');
+        var deletebtn = document.getElementById('editradiodelete').checked;
+        var changebtn = document.getElementById('changeimgupdate').checked;
+        var item_image = document.getElementById('editfile').value;
+        if(deletebtn)
+        {
+          item_image = defaultcatimage;
+        }
+        else if(changebtn)
+        {
+          item_image = item_image.split('\\')[item_image.split('\\').length - 1];
+          if(item_image == '')
+          {
+            item_image = defaultcatimage;
+          }
+          else
+          {
+            item_image = "img/site images/categoryimages/" + edit_id + "/" + item_image; 
+          }
+        }
+        else
+        {
+          item_image = edit_pic;
+        }
+        //document.getElementById('item' + edit_id).innerHTML = editname + " " + editdesc + " " + item_image;
+        document.getElementById('item' + edit_id).innerHTML = '<td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url(\'' + item_image + '\')"></td> <td style="vertical-align:middle"><b>' + editname + '</b></td> <td style="vertical-align:middle">' + editdesc + '</td> <td style="text-align: right; vertical-align:middle;"> <a href="#" onclick="initeditpanel(\'' + edit_id + '\', \'' + editname + '\', \'' + editdesc + '\', \'' + item_image + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Edit</a> <a href="#" onclick="initdeletepanel(' + edit_id + ', \'' + editname + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a> </td>';
+        initeditpanel(edit_id, editname, editdesc, item_image);
+
+      }
+
+      function insertnewitem(newid){
+        var item_id = newid;
+        var item_name = document.getElementById('addname').value;
+        var item_desc = document.getElementById('adddesc').value;
+        var item_image = document.getElementById('addimage').value;
+        item_image = item_image.split('\\')[item_image.split('\\').length - 1];
+        if(item_image == '')
+        {
+          item_image = defaultcatimage;
+        }
+        else
+        {
+          item_image = "img/site images/categoryimages/" + item_id + "/" + item_image; 
+        }
+        var item_complete = '<tr id="item' + item_id + '"> <td style="vertical-align:middle"><div class="category100thumbnail" style="background-image: url(\'' + item_image + '\')"></td> <td style="vertical-align:middle"><b>' + item_name + '</b></td> <td style="vertical-align:middle">' + item_desc + '</td> <td style="text-align: right; vertical-align:middle;"> <a href="#" onclick="initeditpanel(\'' + item_id + '\', \'' + item_name + '\', \'' + item_desc + '\', \'' + item_image + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-info">Edit</a> <a href="#" onclick="initdeletepanel(' + item_id + ', \'' + item_name + '\');" data-toggle="modal" data-target="#myModal" class="btn btn-danger">Delete</a> </td> </tr> '; 
+
+        document.getElementById('thetable').innerHTML = item_complete + document.getElementById('thetable').innerHTML;
+      }
+
+        editform.onload = function() {
+          var editresult = editform.contentDocument.body.innerHTML;
+          if(editrequest)
+          {
+
+            if(editresult == 'success')
+            {
+              updateitem();
+              messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> Category was successfully updated!</div>';
+            }
+            else if(editresult == 'nopicture')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oops!</b> Please select a picture if you want to change it.</div>';
+            }
+            else if(editresult == 'error')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oops!</b> There is a problem with updating the details of the category</div>';
+            }
+            else
+            {
+               messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+            }
+
+            editrequest = false;
+            $('#editbtn').button('reset');
+            editform.src = "";
+          }
+        };
+
+
+        deleteform.onload = function() {
+          var delresult = deleteform.contentDocument.body.innerHTML;
+          if(deleterequest)
+          {
+
+            if(delresult == 'unknown')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> You are trying to delete an unknown category</div>';
+            }
+            else if(delresult == 'used')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> That Category is currently being used by a product. Please delete them first.</div>';
+            }
+            else if(delresult == 'problem')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with deleting this category.</div>';
+            }
+            else if(delresult == 'notfound')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> Category doesn\'t exists in database. It may have been already deleted.</div>';
+            }
+            else if(delresult == 'success')
+            {
+              messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Success!</b> Category deleted.</div>';
+              $('#myModal').modal('hide');
+              $("#item" + deleteid).remove();
+            }
+            else
+            {
+               messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+            }
+
+            deleterequest = false;
+            $('#deletebtn').button('reset');
+            deleteform.src = "";
+          }
+        }; 
+
+        addform.onload = function() {
+          var addresult = addform.contentDocument.body.innerHTML;
+          if(request)
+          {
+            if(parseInt(addresult))
+            {
+              insertnewitem(addresult);
+              document.getElementById('addform').reset();
+              messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Oh Yeah!</b> You have successfully added new category</div>';
+            }
+            else if(addresult == 'successfail')
+            {
+              messagebox.innerHTML = '<div class="alert alert-success" role="alert"><b>Oh Yeah! Wait, Oops</b> You have successfully added new category but the photo failed to upload</div>'; 
+            }
+            else if(addresult == 'nameexists')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> That Category Name already exists.</div>'; 
+            }
+            else if(addresult == 'problem')
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with adding your category.</div>'; 
+            }
+            else
+            {
+              messagebox.innerHTML = '<div class="alert alert-danger" role="alert"><b>Oh Snap!</b> There is a problem with the server or connection</div>';
+            }
+            request = false;
+            $('#addbutton').button('reset');
+            addform.src = "";
+          }
+      };
+
+
+  function initaddpanel(){
+    document.getElementById('panel_title').innerHTML = "Add Category";
+    $('.nav-tabs a[href="#addpanel"]').tab('show');
+  }
+  function initeditpanel(id, name, desc, pic){
+    document.getElementById('panel_title').innerHTML = "Edit Category";
+    $('.nav-tabs a[href="#editpanel"]').tab('show');
+    edit_name = name;
+    edit_desc = desc;
+    edit_id = id;
+    edit_pic = pic;
+
+    var editid = document.getElementById('editid');
+    var editname = document.getElementById('editname');
+    var editdesc = document.getElementById('editdesc');
+    var editimg = document.getElementById('editimg');
+    var deletebtn = document.getElementById('editradiodelete');
+    document.getElementById('editradioremain').checked = true;
+
+    editid.value = id;
+    editname.value = name;
+    editdesc.value = desc;
+    editimg.src = pic;
+    if(pic == defaultcatimage)
+    {
+      deletebtn.disabled = true;
+    }
+    else
+    {
+      deletebtn.disabled = "";
+    }
+
+  }
+  function initdeletepanel(delid, delname){
+    document.getElementById('panel_title').innerHTML = "Delete Category";
+    $('.nav-tabs a[href="#deletepanel"]').tab('show');
+    deleteid = delid;
+    document.getElementById('delid_input').value = delid;
+    document.getElementById('delname').innerHTML = delname;
+  }
+</script>
+</body>
+</html>
